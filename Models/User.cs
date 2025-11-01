@@ -1,10 +1,10 @@
 ﻿namespace PersonalBlog.API.Models
 {
-    public class User
+    public class User : BaseEntity
     {
-        public string FullName { get; set; }
-        public string Email { get; set; } // Unique
-        public string PasswordHash { get; set; } // Auth için
+        public string? FullName { get; set; }
+        public string? Email { get; set; } 
+        public string? PasswordHash { get; set; } 
         public string? Title { get; set; }
         public string? Bio { get; set; }
         public string? AvatarUrl { get; set; }
