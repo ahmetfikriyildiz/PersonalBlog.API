@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PersonalBlog.API.Data;
-using PersonalBlog.API.Services.Implementations;
+using PersonalBlog.API.Middlewares;
 using PersonalBlog.API.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,7 +15,7 @@ builder.Services.AddDbContext<PersonalBlogDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 builder.Services.AddScoped<IProjectService, ProjectService>();
 var app = builder.Build();
-
+app.UseGlobalExceptionHandler();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
