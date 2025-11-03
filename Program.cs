@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PersonalBlog.API.Data;
+using PersonalBlog.API.Services.Implementations;
+using PersonalBlog.API.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +13,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<PersonalBlogDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
-
+builder.Services.AddScoped<IProjectService, ProjectService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
