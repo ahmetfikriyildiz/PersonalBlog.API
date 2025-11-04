@@ -7,6 +7,6 @@ namespace PersonalBlog.API.Repositories.Interfaces
     {
         Task<IEnumerable<ProjectResponseDto>> GetAllProjectsWithSkillsAsync();
         Task<ProjectResponseDto?> GetProjectByIdWithSkillsAsync(int id);
-        Task<Project> GetProjectWithSkillsAsync(int id);
+        Task<Project?> GetProjectWithSkillsAsync(int id);
     }
 }

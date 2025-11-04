@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using PersonalBlog.API.Data;
 using PersonalBlog.API.Middlewares;
+using PersonalBlog.API.Repositories.Implementations;
+using PersonalBlog.API.Repositories.Interfaces;
+using PersonalBlog.API.Services.Implementations;
 using PersonalBlog.API.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +16,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<PersonalBlogDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 var app = builder.Build();
 app.UseGlobalExceptionHandler();
