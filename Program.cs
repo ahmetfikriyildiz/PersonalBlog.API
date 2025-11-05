@@ -20,6 +20,9 @@ builder.Services.AddDbContext<PersonalBlogDbContext>(options =>
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<ISkillRepository, SkillRepository>();
+builder.Services.AddScoped<ISkillService, SkillService>();
+
 var app = builder.Build();
 app.UseGlobalExceptionHandler();
 // Configure the HTTP request pipeline.
