@@ -67,7 +67,7 @@ namespace PersonalBlog.API.Controllers
         {
             if (id != dto.Id)
                 return BadRequest(new { message = "ID in URL does not match ID in body." });
-
+            
             var updatedExperience = await _experienceService.UpdateExperienceAsync(dto);
             return Ok(updatedExperience);
         }

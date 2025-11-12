@@ -35,14 +35,14 @@ namespace PersonalBlog.API.Services.Implementations
 
         public async Task<BlogPostResponseDto> CreatePostAsync(CreateBlogPostDto dto)
         {
-            // Slug unique kontrolü
+            // Slug unique kontrolÃ¼
             var existingSlug = await _context.BlogPosts
                 .AnyAsync(bp => bp.Slug == dto.Slug && !bp.IsDeleted);
 
             if (existingSlug)
                 throw new InvalidOperationException($"A blog post with slug '{dto.Slug}' already exists.");
 
-            // Ýlk User'ý al (þimdilik, sonra authentication ile deðiþecek)
+            // Ä°lk User'Ä± al (ÅŸimdilik, sonra authentication ile deÄŸiÅŸecek)
             var user = await _context.Users.FirstOrDefaultAsync();
             if (user == null)
                 throw new InvalidOperationException("No user found. Please create a user first.");
@@ -66,7 +66,7 @@ namespace PersonalBlog.API.Services.Implementations
         public async Task<BlogPostResponseDto> UpdatePostAsync(UpdateBlogPostDto dto)
         {
             var blogPost = await _blogPostRepository.GetPostWithUserAsync(dto.Id);
-
+            
             if (blogPost == null)
                 throw new KeyNotFoundException($"Blog post with ID {dto.Id} not found.");
 

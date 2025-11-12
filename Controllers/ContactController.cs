@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PersonalBlog.API.DTOs.Contact;
 using PersonalBlog.API.Services.Interfaces;
@@ -32,10 +33,12 @@ namespace PersonalBlog.API.Controllers
         }
 
         /// <summary>
-        /// Get all contact messages (Admin endpoint)
+        /// Get all contact messages (Admin endpoint - Requires authentication)
         /// </summary>
         [HttpGet]
+        [Authorize]
         [ProducesResponseType(typeof(IEnumerable<ResponseContactMessageDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<IEnumerable<ResponseContactMessageDto>>> GetAllMessages()
         {
             var messages = await _contactService.GetAllMessagesAsync();
@@ -43,11 +46,13 @@ namespace PersonalBlog.API.Controllers
         }
 
         /// <summary>
-        /// Get contact message by ID (Admin endpoint)
+        /// Get contact message by ID (Admin endpoint - Requires authentication)
         /// </summary>
         [HttpGet("{id}")]
+        [Authorize]
         [ProducesResponseType(typeof(ResponseContactMessageDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<ResponseContactMessageDto>> GetMessageById(int id)
         {
             var message = await _contactService.GetMessageByIdAsync(id);
@@ -57,11 +62,13 @@ namespace PersonalBlog.API.Controllers
         }
 
         /// <summary>
-        /// Mark contact message as replied (Admin endpoint)
+        /// Mark contact message as replied (Admin endpoint - Requires authentication)
         /// </summary>
         [HttpPatch("{id}/mark-replied")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> MarkAsReplied(int id)
         {
             var result = await _contactService.MarkAsRepliedAsync(id);
@@ -71,11 +78,13 @@ namespace PersonalBlog.API.Controllers
         }
 
         /// <summary>
-        /// Delete a contact message (soft delete - Admin endpoint)
+        /// Delete a contact message (soft delete - Admin endpoint - Requires authentication)
         /// </summary>
         [HttpDelete("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> DeleteMessage(int id)
         {
             var deleted = await _contactService.DeleteMessageAsync(id);

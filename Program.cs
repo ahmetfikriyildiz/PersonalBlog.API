@@ -1,16 +1,27 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using PersonalBlog.API.Data;
 using PersonalBlog.API.Middlewares;
 using PersonalBlog.API.Repositories.Implementations;
 using PersonalBlog.API.Repositories.Interfaces;
 using PersonalBlog.API.Services.Implementations;
 using PersonalBlog.API.Services.Interfaces;
+using PersonalBlog.API.Settings;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // JSON serialization'Ä± camelCase'e Ã§evir
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
 
 // CORS Configuration
 builder.Services.AddCors(options =>
@@ -44,7 +55,7 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 
-    // XML Documentation dosyasýný dahil et
+    // XML Documentation dosyasÄ±nÄ± dahil et
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
@@ -52,18 +63,65 @@ builder.Services.AddSwaggerGen(options =>
         options.IncludeXmlComments(xmlPath);
     }
 
-    // JWT Bearer Authentication için (ileride kullanýlacak)
-    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    // JWT Bearer Authentication
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below.",
         Name = "Authorization",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
     });
 });
 builder.Services.AddDbContext<PersonalBlogDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+
+// JWT Settings
+builder.Services.Configure<JwtSettings>(
+    builder.Configuration.GetSection("JwtSettings"));
+
+// JWT Authentication
+var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
+if (jwtSettings != null)
+{
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+}
+
+builder.Services.AddAuthorization();
 
 // Repositories
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
@@ -81,13 +139,15 @@ builder.Services.AddScoped<IContactService, ContactService>();
 builder.Services.AddScoped<IBlogPostService, BlogPostService>();
 builder.Services.AddScoped<IEducationService, EducationService>();
 builder.Services.AddScoped<IExperienceService, ExperienceService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
 // Global Exception Handler
 app.UseGlobalExceptionHandler();
 
-// CORS - Controller'lardan önce olmalý
+// CORS - Controller'lardan Ã¶nce olmalÄ±
 app.UseCors("AllowAll");
 
 // Configure the HTTP request pipeline.
@@ -101,7 +161,7 @@ app.UseSwaggerUI(options =>
     options.EnableFilter();
     options.EnableTryItOutByDefault();
     options.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.List);
-
+    
     // Production'da gizlemek isterseniz:
     // if (app.Environment.IsDevelopment())
     // {
@@ -111,6 +171,8 @@ app.UseSwaggerUI(options =>
 
 app.UseHttpsRedirection();
 
+// Authentication ve Authorization - SÄ±ra Ã¶nemli!
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

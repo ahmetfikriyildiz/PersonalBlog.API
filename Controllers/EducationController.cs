@@ -67,7 +67,7 @@ namespace PersonalBlog.API.Controllers
         {
             if (id != dto.Id)
                 return BadRequest(new { message = "ID in URL does not match ID in body." });
-
+            
             var updatedEducation = await _educationService.UpdateEducationAsync(dto);
             return Ok(updatedEducation);
         }

@@ -30,7 +30,7 @@ namespace PersonalBlog.API.Services.Implementations
 
         public async Task<EducationResponseDto> CreateEducationAsync(CreateEducationDto dto)
         {
-            // Ýlk User'ý al (þimdilik, sonra authentication ile deðiþecek)
+            // Ä°lk User'Ä± al (ÅŸimdilik, sonra authentication ile deÄŸiÅŸecek)
             var user = await _context.Users.FirstOrDefaultAsync();
             if (user == null)
                 throw new InvalidOperationException("No user found. Please create a user first.");
@@ -55,7 +55,7 @@ namespace PersonalBlog.API.Services.Implementations
         public async Task<EducationResponseDto> UpdateEducationAsync(UpdateEducationDto dto)
         {
             var education = await _educationRepository.GetByIdAsync(dto.Id);
-
+            
             if (education == null)
                 throw new KeyNotFoundException($"Education with ID {dto.Id} not found.");
 

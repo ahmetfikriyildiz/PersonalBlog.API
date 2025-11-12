@@ -30,7 +30,7 @@ namespace PersonalBlog.API.Services.Implementations
 
         public async Task<ExperienceResponseDto> CreateExperienceAsync(CreateExperienceDto dto)
         {
-            // Ýlk User'ý al (þimdilik, sonra authentication ile deðiþecek)
+            // Ä°lk User'Ä± al (ÅŸimdilik, sonra authentication ile deÄŸiÅŸecek)
             var user = await _context.Users.FirstOrDefaultAsync();
             if (user == null)
                 throw new InvalidOperationException("No user found. Please create a user first.");
@@ -56,7 +56,7 @@ namespace PersonalBlog.API.Services.Implementations
         public async Task<ExperienceResponseDto> UpdateExperienceAsync(UpdateExperienceDto dto)
         {
             var experience = await _experienceRepository.GetByIdAsync(dto.Id);
-
+            
             if (experience == null)
                 throw new KeyNotFoundException($"Experience with ID {dto.Id} not found.");
 
