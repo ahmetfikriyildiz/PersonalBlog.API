@@ -1,3 +1,4 @@
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using PersonalBlog.API.DTOs.BlogPost;
     using PersonalBlog.API.Services.Interfaces;
@@ -20,10 +21,12 @@
             }
 
             /// <summary>
-            /// Get all blog posts (including unpublished)
+            /// Get all blog posts including unpublished (Admin endpoint - Requires authentication)
             /// </summary>
             [HttpGet]
+            [Authorize]
             [ProducesResponseType(typeof(IEnumerable<BlogPostResponseDto>), StatusCodes.Status200OK)]
+            [ProducesResponseType(StatusCodes.Status401Unauthorized)]
             public async Task<ActionResult<IEnumerable<BlogPostResponseDto>>> GetAllPosts()
             {
                 var posts = await _blogPostService.GetAllPostsAsync();
@@ -56,11 +59,13 @@
             }
 
             /// <summary>
-            /// Create a new blog post
+            /// Create a new blog post (Admin endpoint - Requires authentication)
             /// </summary>
             [HttpPost]
+            [Authorize]
             [ProducesResponseType(typeof(BlogPostResponseDto), StatusCodes.Status201Created)]
             [ProducesResponseType(StatusCodes.Status400BadRequest)]
+            [ProducesResponseType(StatusCodes.Status401Unauthorized)]
             public async Task<ActionResult<BlogPostResponseDto>> CreatePost([FromBody] CreateBlogPostDto dto)
             {
                 var createdPost = await _blogPostService.CreatePostAsync(dto);
@@ -68,12 +73,14 @@
             }
 
             /// <summary>
-            /// Update an existing blog post
+            /// Update an existing blog post (Admin endpoint - Requires authentication)
             /// </summary>
             [HttpPut("{id}")]
+            [Authorize]
             [ProducesResponseType(typeof(BlogPostResponseDto), StatusCodes.Status200OK)]
             [ProducesResponseType(StatusCodes.Status404NotFound)]
             [ProducesResponseType(StatusCodes.Status400BadRequest)]
+            [ProducesResponseType(StatusCodes.Status401Unauthorized)]
             public async Task<ActionResult<BlogPostResponseDto>> UpdatePost(int id, [FromBody] UpdateBlogPostDto dto)
             {
                 if (id != dto.Id)
@@ -84,11 +91,13 @@
             }
 
             /// <summary>
-            /// Delete a blog post (soft delete)
+            /// Delete a blog post (soft delete - Admin endpoint - Requires authentication)
             /// </summary>
             [HttpDelete("{id}")]
+            [Authorize]
             [ProducesResponseType(StatusCodes.Status204NoContent)]
             [ProducesResponseType(StatusCodes.Status404NotFound)]
+            [ProducesResponseType(StatusCodes.Status401Unauthorized)]
             public async Task<IActionResult> DeletePost(int id)
             {
                 var deleted = await _blogPostService.DeletePostAsync(id);

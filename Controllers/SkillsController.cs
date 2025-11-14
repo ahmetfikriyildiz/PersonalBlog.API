@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PersonalBlog.API.DTOs.Skills;
 using PersonalBlog.API.Services.Interfaces;
 
@@ -37,9 +38,14 @@ namespace PersonalBlog.API.Controllers
             return Ok(skill);
         }
 
+        /// <summary>
+        /// Create a new skill (Admin endpoint - Requires authentication)
+        /// </summary>
         [HttpPost]
+        [Authorize]
         [ProducesResponseType(typeof(SkillsResponseDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<SkillsResponseDto>> CreateSkill([FromBody] CreateSkillDto dto)
         {
             var createdSkill = await _skillService.CreateSkillAsync(dto);
@@ -51,10 +57,15 @@ namespace PersonalBlog.API.Controllers
             );
         }
 
+        /// <summary>
+        /// Update an existing skill (Admin endpoint - Requires authentication)
+        /// </summary>
         [HttpPut("{id}")]
+        [Authorize]
         [ProducesResponseType(typeof(SkillsResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<SkillsResponseDto>> UpdateSkill(int id, [FromBody] UpdateSkillDto dto)
         {
             if (id != dto.Id)
@@ -64,9 +75,14 @@ namespace PersonalBlog.API.Controllers
             return Ok(updatedSkill);
         }
 
+        /// <summary>
+        /// Delete a skill (soft delete - Admin endpoint - Requires authentication)
+        /// </summary>
         [HttpDelete("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> DeleteSkill(int id)
         {
             var deleted = await _skillService.DeleteSkillAsync(id);

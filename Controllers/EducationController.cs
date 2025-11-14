@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PersonalBlog.API.DTOs.Education;
 using PersonalBlog.API.Services.Interfaces;
@@ -45,11 +46,13 @@ namespace PersonalBlog.API.Controllers
         }
 
         /// <summary>
-        /// Create a new education record
+        /// Create a new education record (Admin endpoint - Requires authentication)
         /// </summary>
         [HttpPost]
+        [Authorize]
         [ProducesResponseType(typeof(EducationResponseDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<EducationResponseDto>> CreateEducation([FromBody] CreateEducationDto dto)
         {
             var createdEducation = await _educationService.CreateEducationAsync(dto);
@@ -57,12 +60,14 @@ namespace PersonalBlog.API.Controllers
         }
 
         /// <summary>
-        /// Update an existing education record
+        /// Update an existing education record (Admin endpoint - Requires authentication)
         /// </summary>
         [HttpPut("{id}")]
+        [Authorize]
         [ProducesResponseType(typeof(EducationResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<EducationResponseDto>> UpdateEducation(int id, [FromBody] UpdateEducationDto dto)
         {
             if (id != dto.Id)
@@ -73,11 +78,13 @@ namespace PersonalBlog.API.Controllers
         }
 
         /// <summary>
-        /// Delete an education record (soft delete)
+        /// Delete an education record (soft delete - Admin endpoint - Requires authentication)
         /// </summary>
         [HttpDelete("{id}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> DeleteEducation(int id)
         {
             var deleted = await _educationService.DeleteEducationAsync(id);
