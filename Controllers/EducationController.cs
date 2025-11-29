@@ -1,39 +1,52 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using PersonalBlog.API.DTOs.Education;
-using PersonalBlog.API.Services.Interfaces;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+    using PersonalBlog.API.DTOs.Commons;
+    using PersonalBlog.API.DTOs.Education;
+    using PersonalBlog.API.Services.Interfaces;
 
-namespace PersonalBlog.API.Controllers
-{
-    /// <summary>
-    /// Controller for managing education records
-    /// </summary>
-    [ApiController]
-    [Route("api/[controller]")]
-    [Produces("application/json")]
-    public class EducationController : ControllerBase
+    namespace PersonalBlog.API.Controllers
     {
-        private readonly IEducationService _educationService;
-
-        public EducationController(IEducationService educationService)
-        {
-            _educationService = educationService;
-        }
-
         /// <summary>
-        /// Get all education records
+        /// Controller for managing education records
         /// </summary>
-        [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<EducationResponseDto>), StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<EducationResponseDto>>> GetAllEducations()
+        [ApiController]
+        [Route("api/[controller]")]
+        [Produces("application/json")]
+        public class EducationController : ControllerBase
         {
-            var educations = await _educationService.GetAllEducationsAsync();
-            return Ok(educations);
-        }
+            private readonly IEducationService _educationService;
 
-        /// <summary>
-        /// Get education by ID
-        /// </summary>
+            public EducationController(IEducationService educationService)
+            {
+                _educationService = educationService;
+            }
+
+            /// <summary>
+            /// Get all education records
+            /// </summary>
+            [HttpGet]
+            [ProducesResponseType(typeof(IEnumerable<EducationResponseDto>), StatusCodes.Status200OK)]
+            public async Task<ActionResult<IEnumerable<EducationResponseDto>>> GetAllEducations()
+            {
+                var educations = await _educationService.GetAllEducationsAsync();
+                return Ok(educations);
+            }
+
+            /// <summary>
+            /// Get all education records paged
+            /// </summary>
+            [HttpGet("paged")]
+            [ProducesResponseType(typeof(PagedResponse<EducationResponseDto>), StatusCodes.Status200OK)]
+            public async Task<ActionResult<PagedResponse<EducationResponseDto>>> GetAllEducationsPaged([FromQuery] PaginationFilter filter)
+            {
+                var validFilter = new PaginationFilter(filter.PageNumber, filter.PageSize);
+                var response = await _educationService.GetAllEducationsPagedAsync(validFilter);
+                return Ok(response);
+            }
+
+            /// <summary>
+            /// Get education by ID
+            /// </summary>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(EducationResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PersonalBlog.API.Data;
+using PersonalBlog.API.DTOs.Commons;
 using PersonalBlog.API.DTOs.Projects;
 using PersonalBlog.API.Models;
 using PersonalBlog.API.Repositories.Interfaces;
@@ -43,6 +44,42 @@ namespace PersonalBlog.API.Repositories.Implementations
                 .ToListAsync();
         }
 
+        public async Task<PagedResponse<ProjectResponseDto>> GetAllProjectsWithSkillsPagedAsync(PaginationFilter filter)
+        {
+            var query = _context.Projects.Where(p => !p.IsDeleted);
+            var totalRecords = await query.CountAsync();
+
+            var pagedData = await query
+                .OrderBy(p => p.DisplayOrder ?? 999)
+                .ThenByDescending(p => p.CreatedAt)
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .Select(p => new ProjectResponseDto
+                {
+                    Id = p.Id,
+                    Title = p.Title,
+                    Slug = p.Slug,
+                    Description = p.Description,
+                    GitHubUrl = p.GitHubUrl,
+                    LiveUrl = p.LiveUrl,
+                    DisplayOrder = p.DisplayOrder,
+                    CreatedAt = p.CreatedAt,
+                    UpdatedAt = p.UpdatedAt,
+                    Skills = p.ProjectSkills
+                        .Where(ps => !ps.Skill.IsDeleted)
+                        .Select(ps => new SkillInfoDto
+                        {
+                            Id = ps.Skill.Id,
+                            Name = ps.Skill.Name,
+                            Category = ps.Skill.Category
+                        })
+                        .ToList()
+                })
+                .ToListAsync();
+
+            return new PagedResponse<ProjectResponseDto>(pagedData, filter.PageNumber, filter.PageSize, totalRecords);
+        }
+
         public async Task<ProjectResponseDto?> GetProjectByIdWithSkillsAsync(int id)
         {
             // Projection ile direkt DTO'ya map et
@@ -77,6 +114,7 @@ namespace PersonalBlog.API.Repositories.Implementations
             // Update için entity'yi Skills ile birlikte getir
             return await _context.Projects
                 .Include(p => p.ProjectSkills)
+                .ThenInclude(ps => ps.Skill)
                 .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
         }
     }

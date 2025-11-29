@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PersonalBlog.API.Data;
+using PersonalBlog.API.DTOs.Commons;
 using PersonalBlog.API.DTOs.Projects;
 using PersonalBlog.API.Mappings;
 using PersonalBlog.API.Models;
+using PersonalBlog.API.Repositories.Interfaces;
 using PersonalBlog.API.Services.Interfaces;
 
 namespace PersonalBlog.API.Services.Implementations
@@ -10,72 +12,26 @@ namespace PersonalBlog.API.Services.Implementations
     public class ProjectService : IProjectService
     {
         private readonly PersonalBlogDbContext _context;
+        private readonly IProjectRepository _projectRepository;
 
-        public ProjectService(PersonalBlogDbContext context)
+        public ProjectService(PersonalBlogDbContext context, IProjectRepository projectRepository)
         {
             _context = context;
+            _projectRepository = projectRepository;
         }
         public async Task<IEnumerable<ProjectResponseDto>> GetAllProjectsAsync()
         {
-            // Projection: Include yerine direkt Select ile DTO'ya map et
-            var projects = await _context.Projects
-                .Where(p => !p.IsDeleted)
-                .OrderBy(p => p.DisplayOrder ?? 999)
-                .ThenByDescending(p => p.CreatedAt)
-                .Select(p => new ProjectResponseDto
-                {
-                    Id = p.Id,
-                    Title = p.Title,
-                    Slug = p.Slug,
-                    Description = p.Description,
-                    GitHubUrl = p.GitHubUrl,
-                    LiveUrl = p.LiveUrl,
-                    DisplayOrder = p.DisplayOrder,
-                    CreatedAt = p.CreatedAt,
-                    UpdatedAt = p.UpdatedAt,
-                    Skills = p.ProjectSkills
-                        .Where(ps => !ps.Skill.IsDeleted)
-                        .Select(ps => new SkillInfoDto
-                        {
-                            Id = ps.Skill.Id,
-                            Name = ps.Skill.Name,
-                            Category = ps.Skill.Category
-                        })
-                        .ToList()
-                })
-                .ToListAsync();
-
-            return projects;
+            return await _projectRepository.GetAllProjectsWithSkillsAsync();
         }
+
+        public async Task<PagedResponse<ProjectResponseDto>> GetAllProjectsPagedAsync(PaginationFilter filter)
+        {
+            return await _projectRepository.GetAllProjectsWithSkillsPagedAsync(filter);
+        }
+
         public async Task<ProjectResponseDto?> GetProjectByIdAsync(int id)
         {
-            // Projection: Include yerine direkt Select ile DTO'ya map et
-            var project = await _context.Projects
-                .Where(p => p.Id == id && !p.IsDeleted)
-                .Select(p => new ProjectResponseDto
-                {
-                    Id = p.Id,
-                    Title = p.Title,
-                    Slug = p.Slug,
-                    Description = p.Description,
-                    GitHubUrl = p.GitHubUrl,
-                    LiveUrl = p.LiveUrl,
-                    DisplayOrder = p.DisplayOrder,
-                    CreatedAt = p.CreatedAt,
-                    UpdatedAt = p.UpdatedAt,
-                    Skills = p.ProjectSkills
-                        .Where(ps => !ps.Skill.IsDeleted)
-                        .Select(ps => new SkillInfoDto
-                        {
-                            Id = ps.Skill.Id,
-                            Name = ps.Skill.Name,
-                            Category = ps.Skill.Category
-                        })
-                        .ToList()
-                })
-                .FirstOrDefaultAsync();
-
-            return project;
+            return await _projectRepository.GetProjectByIdWithSkillsAsync(id);
         }
         public async Task<ProjectResponseDto> UpdateProjectAsync(UpdateProjectDto dto)
         {

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PersonalBlog.API.Data;
+using PersonalBlog.API.DTOs.Commons;
 using PersonalBlog.API.Models;
 using PersonalBlog.API.Repositories.Interfaces;
 
@@ -21,6 +22,21 @@ namespace PersonalBlog.API.Repositories.Implementations
             return await _dbSet
                 .Where(e => !e.IsDeleted)
                 .ToListAsync();
+        }
+
+        public virtual async Task<PagedResponse<T>> GetAllPagedAsync(PaginationFilter filter)
+        {
+            var query = _dbSet.Where(e => !e.IsDeleted);
+
+            var totalRecords = await query.CountAsync();
+
+            var pagedData = await query
+                .OrderByDescending(e => e.CreatedAt)
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            return new PagedResponse<T>(pagedData, filter.PageNumber, filter.PageSize, totalRecords);
         }
 
         public virtual async Task<T?> GetByIdAsync(int id)

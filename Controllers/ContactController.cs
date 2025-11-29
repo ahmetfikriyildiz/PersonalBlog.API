@@ -1,53 +1,68 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using PersonalBlog.API.DTOs.Contact;
-using PersonalBlog.API.Services.Interfaces;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+    using PersonalBlog.API.DTOs.Commons;
+    using PersonalBlog.API.DTOs.Contact;
+    using PersonalBlog.API.Services.Interfaces;
 
-namespace PersonalBlog.API.Controllers
-{
-    /// <summary>
-    /// Controller for managing contact messages
-    /// </summary>
-    [ApiController]
-    [Route("api/[controller]")]
-    [Produces("application/json")]
-    public class ContactController : ControllerBase
+    namespace PersonalBlog.API.Controllers
     {
-        private readonly IContactService _contactService;
-
-        public ContactController(IContactService contactService)
-        {
-            _contactService = contactService;
-        }
-
         /// <summary>
-        /// Send a contact message (Public endpoint)
+        /// Controller for managing contact messages
         /// </summary>
-        [HttpPost]
-        [ProducesResponseType(typeof(ResponseContactMessageDto), StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<ResponseContactMessageDto>> SendMessage([FromBody] CreateContactMessageDto dto)
+        [ApiController]
+        [Route("api/[controller]")]
+        [Produces("application/json")]
+        public class ContactController : ControllerBase
         {
-            var createdMessage = await _contactService.CreateContactMessageAsync(dto);
-            return CreatedAtAction(nameof(GetMessageById), new { id = createdMessage.Id }, createdMessage);
-        }
+            private readonly IContactService _contactService;
 
-        /// <summary>
-        /// Get all contact messages (Admin endpoint - Requires authentication)
-        /// </summary>
-        [HttpGet]
-        [Authorize]
-        [ProducesResponseType(typeof(IEnumerable<ResponseContactMessageDto>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<IEnumerable<ResponseContactMessageDto>>> GetAllMessages()
-        {
-            var messages = await _contactService.GetAllMessagesAsync();
-            return Ok(messages);
-        }
+            public ContactController(IContactService contactService)
+            {
+                _contactService = contactService;
+            }
 
-        /// <summary>
-        /// Get contact message by ID (Admin endpoint - Requires authentication)
-        /// </summary>
+            /// <summary>
+            /// Send a contact message (Public endpoint)
+            /// </summary>
+            [HttpPost]
+            [ProducesResponseType(typeof(ResponseContactMessageDto), StatusCodes.Status201Created)]
+            [ProducesResponseType(StatusCodes.Status400BadRequest)]
+            public async Task<ActionResult<ResponseContactMessageDto>> SendMessage([FromBody] CreateContactMessageDto dto)
+            {
+                var createdMessage = await _contactService.CreateContactMessageAsync(dto);
+                return CreatedAtAction(nameof(GetMessageById), new { id = createdMessage.Id }, createdMessage);
+            }
+
+            /// <summary>
+            /// Get all contact messages (Admin endpoint - Requires authentication)
+            /// </summary>
+            [HttpGet]
+            [Authorize]
+            [ProducesResponseType(typeof(IEnumerable<ResponseContactMessageDto>), StatusCodes.Status200OK)]
+            [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+            public async Task<ActionResult<IEnumerable<ResponseContactMessageDto>>> GetAllMessages()
+            {
+                var messages = await _contactService.GetAllMessagesAsync();
+                return Ok(messages);
+            }
+
+            /// <summary>
+            /// Get all contact messages paged (Admin endpoint - Requires authentication)
+            /// </summary>
+            [HttpGet("paged")]
+            [Authorize]
+            [ProducesResponseType(typeof(PagedResponse<ResponseContactMessageDto>), StatusCodes.Status200OK)]
+            [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+            public async Task<ActionResult<PagedResponse<ResponseContactMessageDto>>> GetAllMessagesPaged([FromQuery] PaginationFilter filter)
+            {
+                var validFilter = new PaginationFilter(filter.PageNumber, filter.PageSize);
+                var response = await _contactService.GetAllMessagesPagedAsync(validFilter);
+                return Ok(response);
+            }
+
+            /// <summary>
+            /// Get contact message by ID (Admin endpoint - Requires authentication)
+            /// </summary>
         [HttpGet("{id}")]
         [Authorize]
         [ProducesResponseType(typeof(ResponseContactMessageDto), StatusCodes.Status200OK)]

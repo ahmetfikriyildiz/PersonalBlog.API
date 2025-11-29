@@ -2,7 +2,7 @@
 {
     public class Project : BaseEntity
     {
-        public string Title { get; set; }
+        public string? Title { get; set; }
         public string? Slug { get; set; } // URL dostu
         public string? Description { get; set; }
         public string? GitHubUrl { get; set; }

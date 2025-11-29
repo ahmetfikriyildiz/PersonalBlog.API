@@ -1,4 +1,5 @@
 using PersonalBlog.API.Data;
+using PersonalBlog.API.DTOs.Commons;
 using PersonalBlog.API.DTOs.Education;
 using PersonalBlog.API.Models;
 using PersonalBlog.API.Repositories.Interfaces;
@@ -21,6 +22,11 @@ namespace PersonalBlog.API.Services.Implementations
         public async Task<IEnumerable<EducationResponseDto>> GetAllEducationsAsync()
         {
             return await _educationRepository.GetAllEducationsDtoAsync();
+        }
+
+        public async Task<PagedResponse<EducationResponseDto>> GetAllEducationsPagedAsync(PaginationFilter filter)
+        {
+            return await _educationRepository.GetAllEducationsDtoPagedAsync(filter);
         }
 
         public async Task<EducationResponseDto?> GetEducationByIdAsync(int id)

@@ -1,34 +1,44 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using PersonalBlog.API.DTOs.Projects;
-using PersonalBlog.API.Services.Interfaces;
+﻿    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+    using PersonalBlog.API.DTOs.Commons;
+    using PersonalBlog.API.DTOs.Projects;
+    using PersonalBlog.API.Services.Interfaces;
 
-namespace PersonalBlog.API.Controllers
-{
-    /// <summary>
-    /// Controller for managing projects
-    /// </summary>
-    [ApiController]
-    [Route("api/[controller]")]
-    [Produces("application/json")]
-    public class ProjectsController : ControllerBase
+    namespace PersonalBlog.API.Controllers
     {
-        private readonly IProjectService _projectService;
-
-        public ProjectsController(IProjectService projectService)
+        /// <summary>
+        /// Controller for managing projects
+        /// </summary>
+        [ApiController]
+        [Route("api/[controller]")]
+        [Produces("application/json")]
+        public class ProjectsController : ControllerBase
         {
-            _projectService = projectService;
-        }
+            private readonly IProjectService _projectService;
 
-        [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<ProjectResponseDto>), StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetAllProjects()
-        {
-            var projects = await _projectService.GetAllProjectsAsync();
-            return Ok(projects);
-        }
+            public ProjectsController(IProjectService projectService)
+            {
+                _projectService = projectService;
+            }
 
-        [HttpGet("{id}")]
+            [HttpGet]
+            [ProducesResponseType(typeof(IEnumerable<ProjectResponseDto>), StatusCodes.Status200OK)]
+            public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetAllProjects()
+            {
+                var projects = await _projectService.GetAllProjectsAsync();
+                return Ok(projects);
+            }
+
+            [HttpGet("paged")]
+            [ProducesResponseType(typeof(PagedResponse<ProjectResponseDto>), StatusCodes.Status200OK)]
+            public async Task<ActionResult<PagedResponse<ProjectResponseDto>>> GetAllProjectsPaged([FromQuery] PaginationFilter filter)
+            {
+                var validFilter = new PaginationFilter(filter.PageNumber, filter.PageSize);
+                var response = await _projectService.GetAllProjectsPagedAsync(validFilter);
+                return Ok(response);
+            }
+
+            [HttpGet("{id}")]
         [ProducesResponseType(typeof(ProjectResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ProjectResponseDto>> GetProjectById(int id)

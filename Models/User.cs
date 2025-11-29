@@ -9,6 +9,9 @@
         public string? Bio { get; set; }
         public string? AvatarUrl { get; set; }
 
+        public string? PasswordResetToken { get; set; }
+        public DateTime? PasswordResetTokenExpiry { get; set; }
+
         public ICollection<Project> Projects { get; set; } = new List<Project>();
         public ICollection<BlogPost> BlogPosts { get; set; } = new List<BlogPost>();
         public ICollection<Education> Educations { get; set; } = new List<Education>();

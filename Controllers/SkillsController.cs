@@ -1,31 +1,41 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using PersonalBlog.API.DTOs.Skills;
-using PersonalBlog.API.Services.Interfaces;
+﻿    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+    using PersonalBlog.API.DTOs.Commons;
+    using PersonalBlog.API.DTOs.Skills;
+    using PersonalBlog.API.Services.Interfaces;
 
-namespace PersonalBlog.API.Controllers
-{
-    [ApiController]
-    [Route("api/[controller]")]
-    [Produces("application/json")]
-    public class SkillsController : ControllerBase
+    namespace PersonalBlog.API.Controllers
     {
-        private readonly ISkillService _skillService;
-
-        public SkillsController(ISkillService skillService)
+        [ApiController]
+        [Route("api/[controller]")]
+        [Produces("application/json")]
+        public class SkillsController : ControllerBase
         {
-            _skillService = skillService;
-        }
+            private readonly ISkillService _skillService;
 
-        [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<SkillsResponseDto>), StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<SkillsResponseDto>>> GetAllSkills()
-        {
-            var skills = await _skillService.GetAllSkillsAsync();
-            return Ok(skills);
-        }
+            public SkillsController(ISkillService skillService)
+            {
+                _skillService = skillService;
+            }
 
-        [HttpGet("{id}")]
+            [HttpGet]
+            [ProducesResponseType(typeof(IEnumerable<SkillsResponseDto>), StatusCodes.Status200OK)]
+            public async Task<ActionResult<IEnumerable<SkillsResponseDto>>> GetAllSkills()
+            {
+                var skills = await _skillService.GetAllSkillsAsync();
+                return Ok(skills);
+            }
+
+            [HttpGet("paged")]
+            [ProducesResponseType(typeof(PagedResponse<SkillsResponseDto>), StatusCodes.Status200OK)]
+            public async Task<ActionResult<PagedResponse<SkillsResponseDto>>> GetAllSkillsPaged([FromQuery] PaginationFilter filter)
+            {
+                var validFilter = new PaginationFilter(filter.PageNumber, filter.PageSize);
+                var response = await _skillService.GetAllSkillsPagedAsync(validFilter);
+                return Ok(response);
+            }
+
+            [HttpGet("{id}")]
         [ProducesResponseType(typeof(SkillsResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<SkillsResponseDto>> GetSkillById(int id)

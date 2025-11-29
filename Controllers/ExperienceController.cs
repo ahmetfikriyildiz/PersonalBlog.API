@@ -1,39 +1,52 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using PersonalBlog.API.DTOs.Experience;
-using PersonalBlog.API.Services.Interfaces;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+    using PersonalBlog.API.DTOs.Commons;
+    using PersonalBlog.API.DTOs.Experience;
+    using PersonalBlog.API.Services.Interfaces;
 
-namespace PersonalBlog.API.Controllers
-{
-    /// <summary>
-    /// Controller for managing experience records
-    /// </summary>
-    [ApiController]
-    [Route("api/[controller]")]
-    [Produces("application/json")]
-    public class ExperienceController : ControllerBase
+    namespace PersonalBlog.API.Controllers
     {
-        private readonly IExperienceService _experienceService;
-
-        public ExperienceController(IExperienceService experienceService)
-        {
-            _experienceService = experienceService;
-        }
-
         /// <summary>
-        /// Get all experience records
+        /// Controller for managing experience records
         /// </summary>
-        [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<ExperienceResponseDto>), StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<ExperienceResponseDto>>> GetAllExperiences()
+        [ApiController]
+        [Route("api/[controller]")]
+        [Produces("application/json")]
+        public class ExperienceController : ControllerBase
         {
-            var experiences = await _experienceService.GetAllExperiencesAsync();
-            return Ok(experiences);
-        }
+            private readonly IExperienceService _experienceService;
 
-        /// <summary>
-        /// Get experience by ID
-        /// </summary>
+            public ExperienceController(IExperienceService experienceService)
+            {
+                _experienceService = experienceService;
+            }
+
+            /// <summary>
+            /// Get all experience records
+            /// </summary>
+            [HttpGet]
+            [ProducesResponseType(typeof(IEnumerable<ExperienceResponseDto>), StatusCodes.Status200OK)]
+            public async Task<ActionResult<IEnumerable<ExperienceResponseDto>>> GetAllExperiences()
+            {
+                var experiences = await _experienceService.GetAllExperiencesAsync();
+                return Ok(experiences);
+            }
+
+            /// <summary>
+            /// Get all experience records paged
+            /// </summary>
+            [HttpGet("paged")]
+            [ProducesResponseType(typeof(PagedResponse<ExperienceResponseDto>), StatusCodes.Status200OK)]
+            public async Task<ActionResult<PagedResponse<ExperienceResponseDto>>> GetAllExperiencesPaged([FromQuery] PaginationFilter filter)
+            {
+                var validFilter = new PaginationFilter(filter.PageNumber, filter.PageSize);
+                var response = await _experienceService.GetAllExperiencesPagedAsync(validFilter);
+                return Ok(response);
+            }
+
+            /// <summary>
+            /// Get experience by ID
+            /// </summary>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(ExperienceResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

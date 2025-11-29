@@ -1,6 +1,7 @@
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using PersonalBlog.API.DTOs.BlogPost;
+    using PersonalBlog.API.DTOs.Commons;
     using PersonalBlog.API.Services.Interfaces;
 
     namespace PersonalBlog.API.Controllers
@@ -34,6 +35,20 @@
             }
 
             /// <summary>
+            /// Get all blog posts paged (Admin endpoint - Requires authentication)
+            /// </summary>
+            [HttpGet("paged")]
+            [Authorize]
+            [ProducesResponseType(typeof(PagedResponse<BlogPostResponseDto>), StatusCodes.Status200OK)]
+            [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+            public async Task<ActionResult<PagedResponse<BlogPostResponseDto>>> GetAllPostsPaged([FromQuery] PaginationFilter filter)
+            {
+                var validFilter = new PaginationFilter(filter.PageNumber, filter.PageSize);
+                var response = await _blogPostService.GetAllPostsPagedAsync(validFilter);
+                return Ok(response);
+            }
+
+            /// <summary>
             /// Get only published blog posts (Public endpoint)
             /// </summary>
             [HttpGet("published")]
@@ -42,6 +57,18 @@
             {
                 var posts = await _blogPostService.GetPublishedPostsAsync();
                 return Ok(posts);
+            }
+
+            /// <summary>
+            /// Get published blog posts paged (Public endpoint)
+            /// </summary>
+            [HttpGet("published/paged")]
+            [ProducesResponseType(typeof(PagedResponse<BlogPostResponseDto>), StatusCodes.Status200OK)]
+            public async Task<ActionResult<PagedResponse<BlogPostResponseDto>>> GetPublishedPostsPaged([FromQuery] PaginationFilter filter)
+            {
+                var validFilter = new PaginationFilter(filter.PageNumber, filter.PageSize);
+                var response = await _blogPostService.GetPublishedPostsPagedAsync(validFilter);
+                return Ok(response);
             }
 
             /// <summary>

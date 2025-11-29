@@ -1,15 +1,22 @@
 using FluentValidation;
+using PersonalBlog.API.Data;
 using PersonalBlog.API.DTOs.Skills;
+using PersonalBlog.API.Validators.Custom;
 
 namespace PersonalBlog.API.Validators.Skills
 {
     public class CreateSkillDtoValidator : AbstractValidator<CreateSkillDto>
     {
-        public CreateSkillDtoValidator()
+        private readonly PersonalBlogDbContext _context;
+
+        public CreateSkillDtoValidator(PersonalBlogDbContext context)
         {
+            _context = context;
+
             RuleFor(x => x.Name)
                 .NotEmpty().WithMessage("Skill name is required")
-                .Length(2, 80).WithMessage("Skill name must be between 2 and 80 characters");
+                .Length(2, 80).WithMessage("Skill name must be between 2 and 80 characters")
+                .MustBeUniqueSkillName(_context);
 
             RuleFor(x => x.Category)
                 .MaximumLength(60).When(x => !string.IsNullOrEmpty(x.Category))

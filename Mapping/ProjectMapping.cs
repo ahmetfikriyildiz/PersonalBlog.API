@@ -71,9 +71,10 @@ namespace PersonalBlog.API.Mappings
                 CreatedAt = project.CreatedAt,
                 UpdatedAt = project.UpdatedAt,
                 Skills = project.ProjectSkills
+                    .Where(ps => ps.Skill != null)
                     .Select(ps => new SkillInfoDto
                     {
-                        Id = ps.Skill.Id,
+                        Id = ps.Skill!.Id,
                         Name = ps.Skill.Name,
                         Category = ps.Skill.Category
                     })

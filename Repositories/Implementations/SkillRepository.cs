@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PersonalBlog.API.Data;
+using PersonalBlog.API.DTOs.Commons;
 using PersonalBlog.API.DTOs.Skills;
 using PersonalBlog.API.Models;
 using PersonalBlog.API.Repositories.Interfaces;
@@ -30,6 +31,29 @@ namespace PersonalBlog.API.Repositories.Implementations
                 .ToListAsync();
         }
 
+        public async Task<PagedResponse<SkillsResponseDto>> GetAllSkillsDtoPagedAsync(PaginationFilter filter)
+        {
+            var query = _context.Skills.Where(s => !s.IsDeleted);
+            var totalRecords = await query.CountAsync();
+
+            var pagedData = await query
+                .OrderBy(s => s.Category)
+                .ThenBy(s => s.Name)
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .Select(s => new SkillsResponseDto
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    Category = s.Category,
+                    Proficiency = s.Proficiency,
+                    CreatedAt = s.CreatedAt
+                })
+                .ToListAsync();
+
+            return new PagedResponse<SkillsResponseDto>(pagedData, filter.PageNumber, filter.PageSize, totalRecords);
+        }
+
         public async Task<SkillsResponseDto?> GetSkillByIdDtoAsync(int id)
         {
             // Projection ile direkt DTO'ya map et
@@ -44,12 +68,6 @@ namespace PersonalBlog.API.Repositories.Implementations
                     CreatedAt = s.CreatedAt
                 })
                 .FirstOrDefaultAsync();
-        }
-
-        public async Task<bool> ExistsByNameAsync(string name)
-        {
-            return await _context.Skills
-                .AnyAsync(s => s.Name.ToLower() == name.ToLower() && !s.IsDeleted);
         }
     }
 }

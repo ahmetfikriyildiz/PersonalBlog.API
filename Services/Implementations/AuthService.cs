@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using PersonalBlog.API.Data;
 using PersonalBlog.API.DTOs.Auth;
 using PersonalBlog.API.DTOs.Users;
@@ -14,18 +15,24 @@ namespace PersonalBlog.API.Services.Implementations
         private readonly IRepository<User> _userRepository;
         private readonly PersonalBlogDbContext _context;
         private readonly IJwtService _jwtService;
+        private readonly IEmailService _emailService;
         private readonly ILogger<AuthService> _logger;
+        private readonly IConfiguration _configuration;
 
         public AuthService(
             IRepository<User> userRepository,
             PersonalBlogDbContext context,
             IJwtService jwtService,
-            ILogger<AuthService> logger)
+            IEmailService emailService,
+            ILogger<AuthService> logger,
+            IConfiguration configuration)
         {
             _userRepository = userRepository;
             _context = context;
             _jwtService = jwtService;
+            _emailService = emailService;
             _logger = logger;
+            _configuration = configuration;
         }
 
         public async Task<TokenResponseDto> LoginAsync(LoginDto dto)
@@ -67,15 +74,6 @@ namespace PersonalBlog.API.Services.Implementations
 
         public async Task<TokenResponseDto> RegisterAsync(RegisterDto dto)
         {
-            // Email unique kontrolü
-            var existingUser = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == dto.Email && !u.IsDeleted);
-
-            if (existingUser != null)
-            {
-                throw new ConflictException("A user with this email already exists.");
-            }
-
             // Password hash'le
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
@@ -108,6 +106,45 @@ namespace PersonalBlog.API.Services.Implementations
                 }
             };
         }
+
+        public async Task ForgotPasswordAsync(ForgotPasswordDto dto)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email && !u.IsDeleted);
+            if (user == null)
+            {
+                // Security: Don't reveal if user exists or not
+                return;
+            }
+
+            var token = Guid.NewGuid().ToString();
+            user.PasswordResetToken = token;
+            user.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(1);
+
+            await _userRepository.UpdateAsync(user);
+
+            // Get Client URL from configuration or default to localhost:5173
+            var clientUrl = _configuration["ClientSettings:Url"] ?? "http://localhost:5173";
+            var resetLink = $"{clientUrl}/reset-password?token={token}";
+            var subject = "Password Reset Request";
+            var body = $"Please click the following link to reset your password: <a href='{resetLink}'>Reset Password</a>";
+
+            await _emailService.SendEmailAsync(user.Email!, subject, body);
+        }
+
+        public async Task ResetPasswordAsync(ResetPasswordDto dto)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.PasswordResetToken == dto.Token && !u.IsDeleted);
+
+            if (user == null || user.PasswordResetTokenExpiry < DateTime.UtcNow)
+            {
+                throw new BadRequestException("Invalid or expired password reset token.");
+            }
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            user.PasswordResetToken = null;
+            user.PasswordResetTokenExpiry = null;
+
+            await _userRepository.UpdateAsync(user);
+        }
     }
 }
-

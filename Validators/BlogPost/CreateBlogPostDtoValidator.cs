@@ -1,12 +1,18 @@
 using FluentValidation;
+using PersonalBlog.API.Data;
 using PersonalBlog.API.DTOs.BlogPost;
+using PersonalBlog.API.Validators.Custom;
 
 namespace PersonalBlog.API.Validators.BlogPost
 {
     public class CreateBlogPostDtoValidator : AbstractValidator<CreateBlogPostDto>
     {
-        public CreateBlogPostDtoValidator()
+        private readonly PersonalBlogDbContext _context;
+
+        public CreateBlogPostDtoValidator(PersonalBlogDbContext context)
         {
+            _context = context;
+
             RuleFor(x => x.Title)
                 .NotEmpty().WithMessage("Title is required")
                 .Length(3, 200).WithMessage("Title must be between 3 and 200 characters");
@@ -14,7 +20,8 @@ namespace PersonalBlog.API.Validators.BlogPost
             RuleFor(x => x.Slug)
                 .NotEmpty().WithMessage("Slug is required")
                 .MaximumLength(250).WithMessage("Slug must not exceed 250 characters")
-                .Matches(@"^[a-z0-9]+(?:-[a-z0-9]+)*$").WithMessage("Slug must be lowercase alphanumeric with hyphens only");
+                .MustBeValidSlugFormat()
+                .MustBeUniqueSlug(_context);
 
             RuleFor(x => x.Content)
                 .NotEmpty().WithMessage("Content is required")

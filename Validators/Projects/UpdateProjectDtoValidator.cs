@@ -1,12 +1,18 @@
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+using PersonalBlog.API.Data;
 using PersonalBlog.API.DTOs.Projects;
 
 namespace PersonalBlog.API.Validators.Projects
 {
     public class UpdateProjectDtoValidator : AbstractValidator<UpdateProjectDto>
     {
-        public UpdateProjectDtoValidator()
+        private readonly PersonalBlogDbContext _context;
+
+        public UpdateProjectDtoValidator(PersonalBlogDbContext context)
         {
+            _context = context;
+
             RuleFor(x => x.Id)
                 .GreaterThan(0).WithMessage("Id must be greater than 0");
 
@@ -39,6 +45,23 @@ namespace PersonalBlog.API.Validators.Projects
             RuleFor(x => x.DisplayOrder)
                 .InclusiveBetween(0, 1000).When(x => x.DisplayOrder.HasValue)
                 .WithMessage("DisplayOrder must be between 0 and 1000");
+
+            RuleFor(x => x.SkillIds)
+                .MustAsync(async (skillIds, cancellation) =>
+                {
+                    if (skillIds == null || !skillIds.Any())
+                        return true;
+
+                    // Tüm SkillIds'lerin geçerli skill'ler olduğunu kontrol et
+                    var validSkillIds = await _context.Skills
+                        .Where(s => skillIds.Contains(s.Id) && !s.IsDeleted)
+                        .Select(s => s.Id)
+                        .ToListAsync(cancellation);
+
+                    return validSkillIds.Count == skillIds.Count;
+                })
+                .When(x => x.SkillIds != null && x.SkillIds.Any())
+                .WithMessage("One or more skill IDs are invalid or do not exist.");
         }
 
         private bool BeValidUrl(string? url)

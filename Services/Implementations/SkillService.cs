@@ -1,4 +1,5 @@
-﻿using PersonalBlog.API.DTOs.Skills;
+﻿using PersonalBlog.API.DTOs.Commons;
+using PersonalBlog.API.DTOs.Skills;
 using PersonalBlog.API.Mappings;
 using PersonalBlog.API.Models;
 using PersonalBlog.API.Repositories.Interfaces;
@@ -20,6 +21,11 @@ namespace PersonalBlog.API.Services.Implementations
             return await _skillRepository.GetAllSkillsDtoAsync();
         }
 
+        public async Task<PagedResponse<SkillsResponseDto>> GetAllSkillsPagedAsync(PaginationFilter filter)
+        {
+            return await _skillRepository.GetAllSkillsDtoPagedAsync(filter);
+        }
+
         public async Task<SkillsResponseDto?> GetSkillByIdAsync(int id)
         {
             return await _skillRepository.GetSkillByIdDtoAsync(id);
@@ -27,10 +33,6 @@ namespace PersonalBlog.API.Services.Implementations
 
         public async Task<SkillsResponseDto> CreateSkillAsync(CreateSkillDto dto)
         {
-            // Duplicate name kontrolü
-            if (await _skillRepository.ExistsByNameAsync(dto.Name))
-                throw new InvalidOperationException($"A skill with name '{dto.Name}' already exists.");
-
             // DTO'dan Entity'ye map et
             var skill = new Skill
             {
@@ -53,13 +55,6 @@ namespace PersonalBlog.API.Services.Implementations
 
             if (skill == null)
                 throw new KeyNotFoundException($"Skill with ID {dto.Id} not found.");
-
-            // Name değişiyorsa duplicate kontrolü
-            if (dto.Name != null && dto.Name != skill.Name)
-            {
-                if (await _skillRepository.ExistsByNameAsync(dto.Name))
-                    throw new InvalidOperationException($"A skill with name '{dto.Name}' already exists.");
-            }
 
             // Update
             if (dto.Name != null)

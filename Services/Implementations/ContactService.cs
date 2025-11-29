@@ -1,3 +1,4 @@
+using PersonalBlog.API.DTOs.Commons;
 using PersonalBlog.API.DTOs.Contact;
 using PersonalBlog.API.Models;
 using PersonalBlog.API.Repositories.Interfaces;
@@ -36,6 +37,11 @@ namespace PersonalBlog.API.Services.Implementations
         public async Task<IEnumerable<ResponseContactMessageDto>> GetAllMessagesAsync()
         {
             return await _contactRepository.GetAllMessagesDtoAsync();
+        }
+
+        public async Task<PagedResponse<ResponseContactMessageDto>> GetAllMessagesPagedAsync(PaginationFilter filter)
+        {
+            return await _contactRepository.GetAllMessagesDtoPagedAsync(filter);
         }
 
         public async Task<ResponseContactMessageDto?> GetMessageByIdAsync(int id)

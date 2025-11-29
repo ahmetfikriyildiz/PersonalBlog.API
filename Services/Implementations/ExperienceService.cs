@@ -1,4 +1,5 @@
 using PersonalBlog.API.Data;
+using PersonalBlog.API.DTOs.Commons;
 using PersonalBlog.API.DTOs.Experience;
 using PersonalBlog.API.Models;
 using PersonalBlog.API.Repositories.Interfaces;
@@ -21,6 +22,11 @@ namespace PersonalBlog.API.Services.Implementations
         public async Task<IEnumerable<ExperienceResponseDto>> GetAllExperiencesAsync()
         {
             return await _experienceRepository.GetAllExperiencesDtoAsync();
+        }
+
+        public async Task<PagedResponse<ExperienceResponseDto>> GetAllExperiencesPagedAsync(PaginationFilter filter)
+        {
+            return await _experienceRepository.GetAllExperiencesDtoPagedAsync(filter);
         }
 
         public async Task<ExperienceResponseDto?> GetExperienceByIdAsync(int id)

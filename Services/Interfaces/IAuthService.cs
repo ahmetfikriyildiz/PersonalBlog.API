@@ -6,6 +6,7 @@ namespace PersonalBlog.API.Services.Interfaces
     {
         Task<TokenResponseDto> LoginAsync(LoginDto dto);
         Task<TokenResponseDto> RegisterAsync(RegisterDto dto);
+        Task ForgotPasswordAsync(ForgotPasswordDto dto);
+        Task ResetPasswordAsync(ResetPasswordDto dto);
     }
 }
-

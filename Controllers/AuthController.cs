@@ -48,6 +48,31 @@ namespace PersonalBlog.API.Controllers
             var result = await _authService.LoginAsync(dto);
             return Ok(result);
         }
+
+        /// <summary>
+        /// Request a password reset email
+        /// </summary>
+        /// <param name="dto">Email address</param>
+        [HttpPost("forgot-password")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            await _authService.ForgotPasswordAsync(dto);
+            return Ok(new { message = "If the email exists, a password reset link has been sent." });
+        }
+
+        /// <summary>
+        /// Reset password using a token
+        /// </summary>
+        /// <param name="dto">Token and new password</param>
+        [HttpPost("reset-password")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            await _authService.ResetPasswordAsync(dto);
+            return Ok(new { message = "Password has been reset successfully." });
+        }
     }
 }
-

@@ -23,8 +23,10 @@ namespace PersonalBlog.API.Data
             modelBuilder.ApplyConfiguration(new ProjectConfiguration());
             modelBuilder.ApplyConfiguration(new SkillConfiguration());
             modelBuilder.ApplyConfiguration(new ProjectSkillConfiguration());
-            // EducationConfiguration, ExperienceConfiguration, BlogPostConfiguration, ContactMessageConfiguration
-            // hepsini burada ApplyConfiguration ile ekleyin
+            modelBuilder.ApplyConfiguration(new EducationConfiguration());
+            modelBuilder.ApplyConfiguration(new ExperienceConfiguration());
+            modelBuilder.ApplyConfiguration(new BlogPostConfiguration());
+            modelBuilder.ApplyConfiguration(new ContactMessageConfiguration());
 
             // Soft delete global filter (opsiyonel)
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
@@ -112,6 +114,82 @@ namespace PersonalBlog.API.Data
                    .WithOne(x => x.User)
                    .HasForeignKey(x => x.UserId)
                    .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(x => x.Educations)
+                   .WithOne(x => x.User)
+                   .HasForeignKey(x => x.UserId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(x => x.Experiences)
+                   .WithOne(x => x.User)
+                   .HasForeignKey(x => x.UserId)
+                   .OnDelete(DeleteBehavior.Cascade);
+        }
+    }
+
+    public class EducationConfiguration : IEntityTypeConfiguration<Education>
+    {
+        public void Configure(EntityTypeBuilder<Education> builder)
+        {
+            builder.ToTable("Educations");
+
+            builder.Property(x => x.School).IsRequired().HasMaxLength(200);
+            builder.Property(x => x.Degree).IsRequired().HasMaxLength(150);
+            builder.Property(x => x.FieldOfStudy).HasMaxLength(150);
+
+            builder.HasOne(x => x.User)
+                   .WithMany(x => x.Educations)
+                   .HasForeignKey(x => x.UserId)
+                   .OnDelete(DeleteBehavior.Cascade);
+        }
+    }
+
+    public class ExperienceConfiguration : IEntityTypeConfiguration<Experience>
+    {
+        public void Configure(EntityTypeBuilder<Experience> builder)
+        {
+            builder.ToTable("Experiences");
+
+            builder.Property(x => x.Company).IsRequired().HasMaxLength(200);
+            builder.Property(x => x.Role).IsRequired().HasMaxLength(150);
+            builder.Property(x => x.Location).HasMaxLength(200);
+            builder.Property(x => x.Description).HasMaxLength(2000);
+
+            builder.HasOne(x => x.User)
+                   .WithMany(x => x.Experiences)
+                   .HasForeignKey(x => x.UserId)
+                   .OnDelete(DeleteBehavior.Cascade);
+        }
+    }
+
+    public class BlogPostConfiguration : IEntityTypeConfiguration<BlogPost>
+    {
+        public void Configure(EntityTypeBuilder<BlogPost> builder)
+        {
+            builder.ToTable("BlogPosts");
+
+            builder.Property(x => x.Title).IsRequired().HasMaxLength(200);
+            builder.Property(x => x.Slug).IsRequired().HasMaxLength(250);
+            builder.HasIndex(x => x.Slug).IsUnique();
+            builder.Property(x => x.Content).IsRequired();
+
+            builder.HasOne(x => x.User)
+                   .WithMany(x => x.BlogPosts)
+                   .HasForeignKey(x => x.UserId)
+                   .OnDelete(DeleteBehavior.Cascade);
+        }
+    }
+
+    public class ContactMessageConfiguration : IEntityTypeConfiguration<ContactMessage>
+    {
+        public void Configure(EntityTypeBuilder<ContactMessage> builder)
+        {
+            builder.ToTable("ContactMessages");
+
+            builder.Property(x => x.FullName).IsRequired().HasMaxLength(150);
+            builder.Property(x => x.Email).IsRequired().HasMaxLength(200);
+            builder.Property(x => x.Subject).HasMaxLength(300);
+            builder.Property(x => x.Message).IsRequired().HasMaxLength(5000);
         }
     }
 

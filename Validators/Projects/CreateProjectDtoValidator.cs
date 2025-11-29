@@ -1,12 +1,18 @@
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+using PersonalBlog.API.Data;
 using PersonalBlog.API.DTOs.Projects;
 
 namespace PersonalBlog.API.Validators.Projects
 {
     public class CreateProjectDtoValidator : AbstractValidator<CreateProjectDto>
     {
-        public CreateProjectDtoValidator()
+        private readonly PersonalBlogDbContext _context;
+
+        public CreateProjectDtoValidator(PersonalBlogDbContext context)
         {
+            _context = context;
+
             RuleFor(x => x.Title)
                 .NotEmpty().WithMessage("Title is required")
                 .Length(3, 150).WithMessage("Title must be between 3 and 150 characters");
@@ -34,7 +40,22 @@ namespace PersonalBlog.API.Validators.Projects
                 .WithMessage("DisplayOrder must be between 0 and 1000");
 
             RuleFor(x => x.SkillIds)
-                .NotNull().WithMessage("SkillIds cannot be null");
+                .NotNull().WithMessage("SkillIds cannot be null")
+                .MustAsync(async (skillIds, cancellation) =>
+                {
+                    if (skillIds == null || !skillIds.Any())
+                        return true;
+
+                    // Tüm SkillIds'lerin geçerli skill'ler olduğunu kontrol et
+                    var validSkillIds = await _context.Skills
+                        .Where(s => skillIds.Contains(s.Id) && !s.IsDeleted)
+                        .Select(s => s.Id)
+                        .ToListAsync(cancellation);
+
+                    return validSkillIds.Count == skillIds.Count;
+                })
+                .When(x => x.SkillIds != null && x.SkillIds.Any())
+                .WithMessage("One or more skill IDs are invalid or do not exist.");
         }
 
         private bool BeValidUrl(string? url)

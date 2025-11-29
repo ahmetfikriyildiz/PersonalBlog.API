@@ -1,5 +1,6 @@
 using PersonalBlog.API.Data;
 using PersonalBlog.API.DTOs.BlogPost;
+using PersonalBlog.API.DTOs.Commons;
 using PersonalBlog.API.Models;
 using PersonalBlog.API.Repositories.Interfaces;
 using PersonalBlog.API.Services.Interfaces;
@@ -23,9 +24,19 @@ namespace PersonalBlog.API.Services.Implementations
             return await _blogPostRepository.GetAllPostsDtoAsync();
         }
 
+        public async Task<PagedResponse<BlogPostResponseDto>> GetAllPostsPagedAsync(PaginationFilter filter)
+        {
+            return await _blogPostRepository.GetAllPostsDtoPagedAsync(filter);
+        }
+
         public async Task<IEnumerable<BlogPostResponseDto>> GetPublishedPostsAsync()
         {
             return await _blogPostRepository.GetPublishedPostsDtoAsync();
+        }
+
+        public async Task<PagedResponse<BlogPostResponseDto>> GetPublishedPostsPagedAsync(PaginationFilter filter)
+        {
+            return await _blogPostRepository.GetPublishedPostsDtoPagedAsync(filter);
         }
 
         public async Task<BlogPostResponseDto?> GetPostByIdAsync(int id)
@@ -35,13 +46,6 @@ namespace PersonalBlog.API.Services.Implementations
 
         public async Task<BlogPostResponseDto> CreatePostAsync(CreateBlogPostDto dto)
         {
-            // Slug unique kontrolü
-            var existingSlug = await _context.BlogPosts
-                .AnyAsync(bp => bp.Slug == dto.Slug && !bp.IsDeleted);
-
-            if (existingSlug)
-                throw new InvalidOperationException($"A blog post with slug '{dto.Slug}' already exists.");
-
             // İlk User'ı al (şimdilik, sonra authentication ile değişecek)
             var user = await _context.Users.FirstOrDefaultAsync();
             if (user == null)
@@ -73,16 +77,8 @@ namespace PersonalBlog.API.Services.Implementations
             if (dto.Title != null)
                 blogPost.Title = dto.Title;
 
-            if (dto.Slug != null && dto.Slug != blogPost.Slug)
-            {
-                var existingSlug = await _context.BlogPosts
-                    .AnyAsync(bp => bp.Slug == dto.Slug && bp.Id != dto.Id && !bp.IsDeleted);
-
-                if (existingSlug)
-                    throw new InvalidOperationException($"A blog post with slug '{dto.Slug}' already exists.");
-
+            if (dto.Slug != null)
                 blogPost.Slug = dto.Slug;
-            }
 
             if (dto.Content != null)
                 blogPost.Content = dto.Content;

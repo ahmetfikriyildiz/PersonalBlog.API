@@ -10,7 +10,7 @@ namespace PersonalBlog.API.Validators.Contact
             RuleFor(x => x.FullName)
                 .NotEmpty().WithMessage("Full name is required")
                 .MaximumLength(120).WithMessage("Full name must not exceed 120 characters")
-                .Matches(@"^[a-zA-Z\s'-]+$").WithMessage("Full name can only contain letters, spaces, hyphens, and apostrophes");
+                .Matches(@"^[\p{L}\s'-]+$").WithMessage("Full name can only contain letters, spaces, hyphens, and apostrophes");
 
             RuleFor(x => x.Email)
                 .NotEmpty().WithMessage("Email is required")

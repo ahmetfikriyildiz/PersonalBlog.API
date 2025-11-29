@@ -284,6 +284,21 @@ builder.Services.AddScoped<IEducationService, EducationService>();
 builder.Services.AddScoped<IExperienceService, ExperienceService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+// Email Service
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+
+if (builder.Environment.IsDevelopment())
+{
+    // Development: Log emails to console
+    builder.Services.AddScoped<IEmailService, DevEmailService>();
+}
+else
+{
+    // Production: Send real emails via SMTP
+    builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+}
 
 var app = builder.Build();
 

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PersonalBlog.API.Data;
+using PersonalBlog.API.DTOs.Commons;
 using PersonalBlog.API.DTOs.Contact;
 using PersonalBlog.API.Models;
 using PersonalBlog.API.Repositories.Interfaces;
@@ -28,6 +29,30 @@ namespace PersonalBlog.API.Repositories.Implementations
                     IsReplied = cm.IsReplied
                 })
                 .ToListAsync();
+        }
+
+        public async Task<PagedResponse<ResponseContactMessageDto>> GetAllMessagesDtoPagedAsync(PaginationFilter filter)
+        {
+            var query = _context.ContactMessages.Where(cm => !cm.IsDeleted);
+            var totalRecords = await query.CountAsync();
+
+            var pagedData = await query
+                .OrderByDescending(cm => cm.ReceivedAt)
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .Select(cm => new ResponseContactMessageDto
+                {
+                    Id = cm.Id,
+                    FullName = cm.FullName,
+                    Email = cm.Email,
+                    Subject = cm.Subject,
+                    Message = cm.Message,
+                    ReceivedAt = cm.ReceivedAt,
+                    IsReplied = cm.IsReplied
+                })
+                .ToListAsync();
+
+            return new PagedResponse<ResponseContactMessageDto>(pagedData, filter.PageNumber, filter.PageSize, totalRecords);
         }
 
         public async Task<ResponseContactMessageDto?> GetMessageByIdDtoAsync(int id)
